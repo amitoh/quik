@@ -16,7 +16,7 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with QKSMS.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
     <string name="app_name" translatable="false">QUIK</string>
 
@@ -336,6 +336,12 @@
     <string name="settings_diable_screenshots_summary">Prevent your OS and other apps from taking screenshots of the app.</string>
     <string name="settings_sync_title">Sync messages</string>
     <string name="settings_sync_summary">Re-sync your messages with the native Android SMS database</string>
+    <string name="settings_category_forwarding" tools:ignore="MissingTranslation">Telegram &amp; WhatsApp Forwarding</string>
+    <string name="settings_telegram_chat_id_title">Telegram Chat ID</string>
+    <string name="settings_telegram_chat_id_summary">Enter the Telegram chat ID to forward incoming messages</string>
+    <string name="settings_forward_whatsapp_title" tools:ignore="MissingTranslation">Forward WhatsApp to Telegram</string>
+    <string name="settings_forward_whatsapp_summary" tools:ignore="MissingTranslation">Intercept incoming WhatsApp messages and forward them to Telegram</string>
+    <string name="settings_whatsapp_listener_service_name" tools:ignore="MissingTranslation">WhatsApp Notification Interceptor</string>
     <string name="settings_about_title">About QUIK</string>
     <string name="settings_version">Version %s</string>
     <string name="settings_logging_enabled">Debug logging enabled</string>

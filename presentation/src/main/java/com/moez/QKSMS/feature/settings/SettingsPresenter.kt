@@ -145,6 +145,12 @@ class SettingsPresenter @Inject constructor(
         disposables += prefs.disableScreenshots.asObservable()
             .subscribe { enabled -> newState { copy(disableScreenshotsEnabled = enabled) } }
 
+        disposables += prefs.telegramChatId.asObservable()
+                .subscribe { chatId -> newState { copy(telegramChatId = chatId) } }
+
+        disposables += prefs.forwardWhatsappToTelegram.asObservable()
+                .subscribe { enabled -> newState { copy(forwardWhatsappToTelegram = enabled) } }
+
         disposables += syncRepo.syncProgress
                 .sample(16, TimeUnit.MILLISECONDS)
                 .distinctUntilChanged()
@@ -218,11 +224,26 @@ class SettingsPresenter @Inject constructor(
 
                         R.id.disableScreenshots -> prefs.disableScreenshots.set(!prefs.disableScreenshots.get())
 
+                        R.id.telegramChatId -> view.showTelegramChatIdDialog(prefs.telegramChatId.get())
+
+                        R.id.forwardWhatsapp -> {
+                            val newSetting = !prefs.forwardWhatsappToTelegram.get()
+                            prefs.forwardWhatsappToTelegram.set(newSetting)
+                            if (newSetting && !externalNavigator.isNotificationListenerEnabled()) {
+                                externalNavigator.showNotificationListenerSettings()
+                            }
+                        }
+
                         R.id.sync -> syncMessages.execute(Unit)
 
                         R.id.about -> view.showAbout()
                     }
                 }
+
+        view.telegramChatIdChanged()
+                .doOnNext(prefs.telegramChatId::set)
+                .autoDisposable(view.scope())
+                .subscribe()
 
         view.aboutLongClicks()
                 .map { !prefs.logging.get() }

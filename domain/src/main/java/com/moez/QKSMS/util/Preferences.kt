@@ -135,6 +135,8 @@ class Preferences @Inject constructor(
     val disableScreenshots = rxPrefs.getBoolean("disableScreenshots", false)
     val logging = rxPrefs.getBoolean("logging", false)
     val unreadAtTop = rxPrefs.getBoolean("unreadAtTop", false)
+    val telegramChatId = rxPrefs.getString("telegramChatId", "")
+    val forwardWhatsappToTelegram = rxPrefs.getBoolean("forwardWhatsappToTelegram", false)
 
     val autoDeduplicate = rxPrefs.getBoolean("autoDeduplicateMessages", false)
 

@@ -24,6 +24,7 @@ import android.provider.ContactsContract.CommonDataKinds.Phone
 import dev.octoshrimpy.quik.manager.PermissionManager
 import dev.octoshrimpy.quik.model.Contact
 import dev.octoshrimpy.quik.model.PhoneNumber
+import dev.octoshrimpy.quik.util.SqliteWrapper
 import javax.inject.Inject
 
 class CursorToContactImpl @Inject constructor(
@@ -75,7 +76,7 @@ class CursorToContactImpl @Inject constructor(
 
     override fun getContactsCursor(): Cursor? {
         return when (permissionManager.hasContacts()) {
-            true -> context.contentResolver.query(URI, PROJECTION, null, null, null)
+            true -> SqliteWrapper.query(context, URI, PROJECTION)
             false -> null
         }
     }

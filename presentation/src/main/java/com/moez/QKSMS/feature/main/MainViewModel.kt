@@ -130,10 +130,10 @@ class MainViewModel @Inject constructor(
         migratePreferences.execute(Unit)
 
 
-        // If we have all permissions and we've never run a sync, run a sync. This will be the case
+        // If we have READ_SMS permission and we've never run a sync, run a sync. This will be the case
         // when upgrading from 2.7.3, or if the app's data was cleared
         val lastSync = Realm.getDefaultInstance().use { realm -> realm.where(SyncLog::class.java)?.max("date") ?: 0 }
-        if (lastSync == 0 && permissionManager.isDefaultSms() && permissionManager.hasReadSms() && permissionManager.hasContacts()) {
+        if (lastSync == 0L && permissionManager.hasReadSms()) {
             syncMessages.execute(Unit)
         }
 
@@ -162,8 +162,8 @@ class MainViewModel @Inject constructor(
         super.bindView(view)
 
         when {
-            !permissionManager.isDefaultSms() -> view.requestDefaultSms()
             !permissionManager.hasReadSms() || !permissionManager.hasContacts() -> view.requestPermissions()
+            !permissionManager.isDefaultSms() -> view.requestDefaultSms()
         }
 
 
@@ -225,14 +225,13 @@ class MainViewModel @Inject constructor(
             .autoDisposable(view.scope())
             .subscribe()
 
-        // If we go from not having all SMS permissions to having them, sync messages
+        // If we go from not having READ_SMS permission to having it, sync messages
         view.activityResumedIntent
             .filter { resumed -> resumed }
             .observeOn(Schedulers.io())
-            .map { permissionManager.isDefaultSms() && permissionManager.hasReadSms() && permissionManager.hasContacts() }
+            .map { permissionManager.hasReadSms() }
             .distinctUntilChanged()
-            .skip(1)
-            .filter { hasAllPermissions -> hasAllPermissions }
+            .filter { hasReadSms -> hasReadSms }
             .autoDisposable(view.scope())
             .subscribe { syncMessages.execute(Unit) }
 

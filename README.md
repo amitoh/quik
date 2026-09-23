@@ -11,6 +11,7 @@ QUIK is an open source replacement to the [stock messaging app](https://github.c
 ## Features
 
 - Scheduled messages
+- Forward incoming SMS/MMS and WhatsApp messages to Telegram
 - Message backup
 - Speech-to-text and text-to-speech integrated within the app
 - Message blocking and archiving

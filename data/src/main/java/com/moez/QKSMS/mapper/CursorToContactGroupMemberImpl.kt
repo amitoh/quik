@@ -21,6 +21,7 @@ package dev.octoshrimpy.quik.mapper
 import android.content.Context
 import android.database.Cursor
 import android.provider.ContactsContract
+import dev.octoshrimpy.quik.util.SqliteWrapper
 import javax.inject.Inject
 
 class CursorToContactGroupMemberImpl @Inject constructor(
@@ -46,7 +47,7 @@ class CursorToContactGroupMemberImpl @Inject constructor(
     }
 
     override fun getGroupMembersCursor(): Cursor? {
-        return context.contentResolver.query(URI, PROJECTION, SELECTION, SELECTION_ARGS, null)
+        return SqliteWrapper.query(context, URI, PROJECTION, SELECTION, SELECTION_ARGS, null)
     }
 
 }

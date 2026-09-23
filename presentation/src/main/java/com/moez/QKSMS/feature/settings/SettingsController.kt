@@ -76,10 +76,15 @@ class SettingsController : QkController<SettingsControllerBinding, SettingsView,
         TextInputDialog(activity!!, context.getString(R.string.settings_signature_title), signatureSubject::onNext)
     }
 
+    private val telegramChatIdDialog: TextInputDialog by lazy {
+        TextInputDialog(activity!!, context.getString(R.string.settings_telegram_chat_id_title), telegramChatIdSubject::onNext)
+    }
+
     private val viewQksmsPlusSubject: Subject<Unit> = PublishSubject.create()
     private val startTimeSelectedSubject: Subject<Pair<Int, Int>> = PublishSubject.create()
     private val endTimeSelectedSubject: Subject<Pair<Int, Int>> = PublishSubject.create()
     private val signatureSubject: Subject<String> = PublishSubject.create()
+    private val telegramChatIdSubject: Subject<String> = PublishSubject.create()
 
     private val progressAnimator by lazy { ObjectAnimator.ofInt(binding.syncingProgress, "progress", 0, 0) }
 
@@ -138,6 +143,8 @@ class SettingsController : QkController<SettingsControllerBinding, SettingsView,
 
     override fun signatureChanged(): Observable<String> = signatureSubject
 
+    override fun telegramChatIdChanged(): Observable<String> = telegramChatIdSubject
+
     override fun mmsSizeSelected(): Observable<Int> = mmsSizeDialog.adapter.menuItemClicks
 
     override fun messageLinkHandlingSelected(): Observable<Int> = messageLinkHandlingDialog.adapter.menuItemClicks
@@ -165,6 +172,11 @@ class SettingsController : QkController<SettingsControllerBinding, SettingsView,
 
         binding.signature.summary = state.signature.takeIf { it.isNotBlank() }
                 ?: context.getString(R.string.settings_signature_summary)
+
+        binding.telegramChatId.summary = state.telegramChatId.takeIf { it.isNotBlank() }
+                ?: context.getString(R.string.settings_telegram_chat_id_summary)
+
+        binding.forwardWhatsapp.checkbox?.isChecked = state.forwardWhatsappToTelegram
 
         binding.textSize.summary = state.textSizeSummary
         textSizeDialog.adapter.selectedItem = state.textSizeId
@@ -237,6 +249,8 @@ class SettingsController : QkController<SettingsControllerBinding, SettingsView,
     override fun showDelayDurationDialog() = sendDelayDialog.show(activity!!)
 
     override fun showSignatureDialog(signature: String) = signatureDialog.setText(signature).show()
+
+    override fun showTelegramChatIdDialog(chatId: String) = telegramChatIdDialog.setText(chatId).show()
 
     override fun showMmsSizePicker() = mmsSizeDialog.show(activity!!)
 

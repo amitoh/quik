@@ -54,16 +54,20 @@ class EmojiReactionRepositoryImpl @Inject constructor(
     // We use an ordered map to make sure we can test tapback regexes before generic ones
     private val reactionPatterns: LinkedHashMap<Regex, (MatchResult) -> ParsedEmojiReaction?> = linkedMapOf(
         Regex(GOOGLE_MESSAGE_REACTION_REGEX) to { match ->
-            ParsedEmojiReaction(
-            match.groupValues[1], match.groupValues[2]
-            )
+            val g1 = match.groupValues.getOrNull(1)
+            val g2 = match.groupValues.getOrNull(2)
+            if (g1 != null && g2 != null) {
+                ParsedEmojiReaction(g1, g2)
+            } else null
         }
     )
     private val removalPatterns: LinkedHashMap<Regex, (MatchResult) -> ParsedEmojiReaction?> = linkedMapOf(
         Regex(GOOGLE_MESSAGE_REACTION_REMOVAL_REGEX) to { match ->
-            ParsedEmojiReaction(
-                match.groupValues[1], match.groupValues[2], isRemoval = true
-            )
+            val g1 = match.groupValues.getOrNull(1)
+            val g2 = match.groupValues.getOrNull(2)
+            if (g1 != null && g2 != null) {
+                ParsedEmojiReaction(g1, g2, isRemoval = true)
+            } else null
         }
     )
 
@@ -94,27 +98,67 @@ class EmojiReactionRepositoryImpl @Inject constructor(
             Triple("‼️", strings.iosExclamationAdded, strings.iosExclamationRemoved),
             Triple("❓", strings.iosQuestionMarkAdded, strings.iosQuestionMarkRemoved)
         ).forEach { (emoji, added, removed) ->
-            added?.let {
-                reactionPatterns[Regex(it)] =
-                    { match -> ParsedEmojiReaction(emoji, match.groupValues[1]) }
+            added?.takeIf { it.isNotBlank() }?.let { pattern ->
+                try {
+                    reactionPatterns[Regex(pattern)] = { match ->
+                        match.groupValues.getOrNull(1)?.let { msg ->
+                            ParsedEmojiReaction(emoji, msg)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.w(e, "Invalid regex pattern: $pattern")
+                }
             }
-            removed?.let {
-                removalPatterns[Regex(it)] =
-                    { match -> ParsedEmojiReaction(emoji, match.groupValues[1], isRemoval = true) }
+            removed?.takeIf { it.isNotBlank() }?.let { pattern ->
+                try {
+                    removalPatterns[Regex(pattern)] = { match ->
+                        match.groupValues.getOrNull(1)?.let { msg ->
+                            ParsedEmojiReaction(emoji, msg, isRemoval = true)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.w(e, "Invalid regex pattern: $pattern")
+                }
             }
         }
 
         // Generic iOS emoji patterns
-        strings.iosGenericAdded?.let { pattern ->
-            reactionPatterns[Regex(pattern)] = { match ->
-                // TODO: localize "with a sticker"
-                if (match.groupValues.getOrNull(1) == "with a sticker") null
-                else ParsedEmojiReaction(match.groupValues[1], match.groupValues[2])
+        strings.iosGenericAdded?.takeIf { it.isNotBlank() }?.let { pattern ->
+            try {
+                reactionPatterns[Regex(pattern)] = { match ->
+                    val g1 = match.groupValues.getOrNull(1)
+                    val g2 = match.groupValues.getOrNull(2)
+                    if (g1 == null || g1 == "with a sticker") {
+                        null
+                    } else if (g2 != null) {
+                        val (emoji, msg) = if (g1.length > 10 && g2.length <= 10) {
+                            g2 to g1
+                        } else {
+                            g1 to g2
+                        }
+                        ParsedEmojiReaction(emoji, msg)
+                    } else null
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "Invalid regex pattern: $pattern")
             }
         }
-        strings.iosGenericRemoved?.let { pattern ->
-            removalPatterns[Regex(pattern)] = { match ->
-                ParsedEmojiReaction(match.groupValues[1], match.groupValues[2], isRemoval = true)
+        strings.iosGenericRemoved?.takeIf { it.isNotBlank() }?.let { pattern ->
+            try {
+                removalPatterns[Regex(pattern)] = { match ->
+                    val g1 = match.groupValues.getOrNull(1)
+                    val g2 = match.groupValues.getOrNull(2)
+                    if (g1 != null && g2 != null) {
+                        val (emoji, msg) = if (g1.length > 10 && g2.length <= 10) {
+                            g2 to g1
+                        } else {
+                            g1 to g2
+                        }
+                        ParsedEmojiReaction(emoji, msg, isRemoval = true)
+                    } else null
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "Invalid regex pattern: $pattern")
             }
         }
 
@@ -147,44 +191,59 @@ class EmojiReactionRepositoryImpl @Inject constructor(
     }
 
     override fun parseEmojiReaction(body: String): ParsedEmojiReaction? {
-        val removal = parseRemoval(body)
-        if (removal != null) return removal
+        return try {
+            val removal = parseRemoval(body)
+            if (removal != null) return removal
 
-        for ((pattern, parser) in reactionPatterns) {
-            val match = pattern.find(body) ?: continue
-            val result = parser(match) ?: continue
+            for ((pattern, parser) in reactionPatterns) {
+                val match = pattern.find(body) ?: continue
+                val result = parser(match) ?: continue
 
-            Timber.d("Reaction found with ${result.emoji}")
-            return result
+                Timber.d("Reaction found with ${result.emoji}")
+                return result
+            }
+
+            null
+        } catch (e: Exception) {
+            Timber.e(e, "Error parsing emoji reaction")
+            null
         }
-
-        return null
     }
 
     private fun parseRemoval(body: String): ParsedEmojiReaction? {
-        for ((pattern, parser) in removalPatterns) {
-            val match = pattern.find(body) ?: continue
-            val result = parser(match) ?: continue
+        return try {
+            for ((pattern, parser) in removalPatterns) {
+                val match = pattern.find(body) ?: continue
+                val result = parser(match) ?: continue
 
-            Timber.d("Removal found with ${result.emoji}")
-            return result
+                Timber.d("Removal found with ${result.emoji}")
+                return result
+            }
+
+            null
+        } catch (e: Exception) {
+            Timber.e(e, "Error parsing emoji removal")
+            null
         }
-
-        return null
     }
 
-    private fun parseTruncatedMessages(originalMessageText: String): Regex {
-        val reactionText = originalMessageText.trim()
+    private fun parseTruncatedMessages(originalMessageText: String): Regex? {
+        return try {
+            val reactionText = originalMessageText.trim()
 
-        val delimiter = MESSAGE_TRUNCATION_DELIMITER
-        val index = reactionText.lastIndexOf(delimiter)
-        val regexPattern = if (index == -1) {
-            Regex.escape(reactionText)
-        } else {
-            val before = reactionText.take(index)
-            Regex.escape(before) + ".*"
+            val delimiter = MESSAGE_TRUNCATION_DELIMITER
+            val index = reactionText.lastIndexOf(delimiter)
+            val regexPattern = if (index == -1) {
+                Regex.escape(reactionText)
+            } else {
+                val before = reactionText.take(index)
+                Regex.escape(before) + ".*"
+            }
+            Regex("^$regexPattern$", RegexOption.DOT_MATCHES_ALL)
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to compile truncated message regex for '$originalMessageText'")
+            null
         }
-        return Regex("^$regexPattern$", RegexOption.DOT_MATCHES_ALL)
     }
 
     /**
@@ -226,7 +285,7 @@ class EmojiReactionRepositoryImpl @Inject constructor(
         val startTime = System.currentTimeMillis()
         val originalMessageRegex = parseTruncatedMessages(originalMessageText)
         val match = candidates.find { message ->
-            originalMessageRegex.matches(message.getText(false).trim())
+            originalMessageRegex?.matches(message.getText(false).trim()) == true
         }
         Timber.d(
             "Scanned ${candidates.size} candidate emoji targets in " +

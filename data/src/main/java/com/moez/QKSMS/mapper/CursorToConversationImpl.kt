@@ -25,6 +25,7 @@ import android.provider.Telephony.Threads
 import dev.octoshrimpy.quik.manager.PermissionManager
 import dev.octoshrimpy.quik.model.Conversation
 import dev.octoshrimpy.quik.model.Recipient
+import dev.octoshrimpy.quik.util.SqliteWrapper
 import javax.inject.Inject
 
 class CursorToConversationImpl @Inject constructor(
@@ -56,7 +57,8 @@ class CursorToConversationImpl @Inject constructor(
 
     override fun getConversationsCursor(): Cursor? {
         return when (permissionManager.hasReadSms()) {
-            true -> context.contentResolver.query(URI, PROJECTION, null, null, "date desc")
+            true -> SqliteWrapper.query(context, URI, PROJECTION, sortOrder = "date desc")
+                ?: SqliteWrapper.query(context, URI, PROJECTION, sortOrder = null)
             false -> null
         }
     }

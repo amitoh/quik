@@ -28,10 +28,29 @@ android {
         targetCompatibility 1.8
     }
 
+    buildFeatures {
+        buildConfig true
+    }
+
     defaultConfig {
         minSdk 23
         targetSdkVersion 33
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        def localProps = new Properties()
+        def localPropsFile = rootProject.file('local.properties')
+        if (localPropsFile.exists()) {
+            localPropsFile.withInputStream { localProps.load(it) }
+        }
+        def telegramBotToken = System.getenv("TELEGRAM_BOT_TOKEN")
+            ?: (project.hasProperty("TELEGRAM_BOT_TOKEN") ? project.property("TELEGRAM_BOT_TOKEN") : null)
+            ?: localProps.getProperty("TELEGRAM_BOT_TOKEN")
+
+        if (!telegramBotToken) {
+            throw new GradleException("TELEGRAM_BOT_TOKEN is required. Please set TELEGRAM_BOT_TOKEN in local.properties or as an environment variable.")
+        }
+
+        buildConfigField "String", "TELEGRAM_BOT_TOKEN", "\"${telegramBotToken}\""
     }
 
     namespace 'dev.octoshrimpy.quik.data'

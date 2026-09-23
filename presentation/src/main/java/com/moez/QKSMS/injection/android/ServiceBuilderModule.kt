@@ -24,6 +24,7 @@ import dev.octoshrimpy.quik.feature.backup.RestoreBackupService
 import dev.octoshrimpy.quik.injection.scope.ActivityScope
 import dev.octoshrimpy.quik.service.HeadlessSmsSendService
 import dev.octoshrimpy.quik.service.AutoDeleteService
+import dev.octoshrimpy.quik.service.WhatsAppNotificationListenerService
 
 @Module
 abstract class ServiceBuilderModule {
@@ -39,5 +40,9 @@ abstract class ServiceBuilderModule {
     @ActivityScope
     @ContributesAndroidInjector
     abstract fun bindRestoreBackupService(): RestoreBackupService
+
+    @ActivityScope
+    @ContributesAndroidInjector
+    abstract fun bindWhatsAppNotificationListenerService(): WhatsAppNotificationListenerService
 
 }

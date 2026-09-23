@@ -22,6 +22,7 @@ import android.content.Context
 import android.database.Cursor
 import dev.octoshrimpy.quik.manager.PermissionManager
 import dev.octoshrimpy.quik.model.Recipient
+import dev.octoshrimpy.quik.util.SqliteWrapper
 import javax.inject.Inject
 import androidx.core.net.toUri
 
@@ -44,13 +45,13 @@ class CursorToRecipientImpl @Inject constructor(
 
     override fun getRecipientCursor(): Cursor? {
         return when (permissionManager.hasReadSms()) {
-            true -> context.contentResolver.query(URI, null, null, null, null)
+            true -> SqliteWrapper.query(context, URI, null)
             false -> null
         }
     }
 
     override fun getRecipientCursor(id: Long): Cursor? {
-        return context.contentResolver.query(URI, null, "_id = ?", arrayOf(id.toString()), null)
+        return SqliteWrapper.query(context, URI, null, "_id = ?", arrayOf(id.toString()))
     }
 
 }

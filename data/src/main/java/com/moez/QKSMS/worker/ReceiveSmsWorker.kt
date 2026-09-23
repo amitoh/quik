@@ -61,6 +61,9 @@ class ReceiveSmsWorker(appContext: Context, workerParams: WorkerParameters)
 
         val message = messageRepo.getMessage(messageId) ?: return Result.failure(inputData)
 
+        val chatId = prefs.telegramChatId.get()
+        TelegramForwarder.forwardMessage(message.address, message.getText(), chatId)
+
         val action = blockingClient.shouldBlock(message.address).blockingGet()
 
         when {

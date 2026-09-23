@@ -154,6 +154,9 @@ class ReceiveMmsWorker(appContext: Context, workerParams: WorkerParameters)
                     val message = syncRepo.syncMessage(messageUri)
                         ?: return Result.failure(inputData)
 
+                    val chatId = prefs.telegramChatId.get()
+                    TelegramForwarder.forwardMessage(message.address, message.getText(), chatId)
+
                     // TODO: Ideally this is done when we're saving the MMS to ContentResolver
                     // This change can be made once we move the MMS storing code to the Data module
                     if (activeConversationManager.getActiveConversation() == message.threadId) {
