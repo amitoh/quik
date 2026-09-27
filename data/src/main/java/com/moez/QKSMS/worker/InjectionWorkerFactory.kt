@@ -20,7 +20,6 @@ package dev.octoshrimpy.quik.worker
 
 import android.content.Context
 import androidx.work.ListenableWorker
-import androidx.work.Worker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
 import dev.octoshrimpy.quik.blocking.BlockingClient
@@ -57,11 +56,19 @@ class InjectionWorkerFactory @Inject constructor(
         workerClassName: String,
         workerParameters: WorkerParameters
     ): ListenableWorker? {
-        val instance = Class
-            .forName(workerClassName)
-            .asSubclass(Worker::class.java)
-            .getDeclaredConstructor(Context::class.java, WorkerParameters::class.java)
-            .newInstance(appContext, workerParameters)
+        val workerClass = try {
+            Class.forName(workerClassName).asSubclass(ListenableWorker::class.java)
+        } catch (e: Exception) {
+            return null
+        }
+
+        val instance = try {
+            workerClass
+                .getDeclaredConstructor(Context::class.java, WorkerParameters::class.java)
+                .newInstance(appContext, workerParameters)
+        } catch (e: Exception) {
+            return null
+        }
 
         when (instance) {
             is HousekeepingWorker ->
