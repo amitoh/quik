@@ -41,7 +41,6 @@ abstract class ServiceBuilderModule {
     @ContributesAndroidInjector
     abstract fun bindRestoreBackupService(): RestoreBackupService
 
-    @ActivityScope
     @ContributesAndroidInjector
     abstract fun bindWhatsAppNotificationListenerService(): WhatsAppNotificationListenerService
 

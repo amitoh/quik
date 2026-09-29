@@ -22,6 +22,10 @@ import android.app.Activity
 import android.app.Application
 import android.app.Service
 import android.content.BroadcastReceiver
+import android.content.ComponentName
+import android.content.pm.PackageManager
+import android.os.Build
+import android.service.notification.NotificationListenerService
 import androidx.emoji2.bundled.BundledEmojiCompatConfig
 import androidx.emoji2.text.EmojiCompat
 import androidx.work.Configuration
@@ -43,6 +47,7 @@ import dev.octoshrimpy.quik.manager.BillingManager
 import dev.octoshrimpy.quik.manager.ReferralManager
 import dev.octoshrimpy.quik.migration.QkMigration
 import dev.octoshrimpy.quik.migration.QkRealmMigration
+import dev.octoshrimpy.quik.service.WhatsAppNotificationListenerService
 import dev.octoshrimpy.quik.util.NightModeManager
 import dev.octoshrimpy.quik.worker.HousekeepingWorker
 import io.realm.Realm
@@ -129,6 +134,19 @@ class QKApplication : Application(), HasActivityInjector, HasBroadcastReceiverIn
 
         // register, or re-register, housekeeping work manager
         HousekeepingWorker.register(applicationContext)
+
+        try {
+            val componentName = ComponentName(this, WhatsAppNotificationListenerService::class.java)
+            packageManager.setComponentEnabledSetting(
+                componentName,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                NotificationListenerService.requestRebind(componentName)
+            }
+        } catch (_: Exception) {
+        }
     }
 
     override fun activityInjector(): AndroidInjector<Activity> {

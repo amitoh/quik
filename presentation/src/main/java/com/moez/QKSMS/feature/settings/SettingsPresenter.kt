@@ -18,7 +18,10 @@
  */
 package dev.octoshrimpy.quik.feature.settings
 
+import android.content.ComponentName
 import android.content.Context
+import android.os.Build
+import android.service.notification.NotificationListenerService
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import dev.octoshrimpy.quik.R
@@ -28,6 +31,7 @@ import dev.octoshrimpy.quik.common.base.QkPresenter
 import dev.octoshrimpy.quik.common.util.Colors
 import dev.octoshrimpy.quik.common.util.DateFormatter
 import dev.octoshrimpy.quik.common.util.extensions.makeToast
+import dev.octoshrimpy.quik.service.WhatsAppNotificationListenerService
 import dev.octoshrimpy.quik.interactor.SyncMessages
 import dev.octoshrimpy.quik.manager.BillingManager
 import dev.octoshrimpy.quik.repository.SyncRepository
@@ -229,8 +233,17 @@ class SettingsPresenter @Inject constructor(
                         R.id.forwardWhatsapp -> {
                             val newSetting = !prefs.forwardWhatsappToTelegram.get()
                             prefs.forwardWhatsappToTelegram.set(newSetting)
-                            if (newSetting && !externalNavigator.isNotificationListenerEnabled()) {
-                                externalNavigator.showNotificationListenerSettings()
+                            if (newSetting) {
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                    try {
+                                        val componentName = ComponentName(context, WhatsAppNotificationListenerService::class.java)
+                                        NotificationListenerService.requestRebind(componentName)
+                                    } catch (_: Exception) {
+                                    }
+                                }
+                                if (!externalNavigator.isNotificationListenerEnabled()) {
+                                    externalNavigator.showNotificationListenerSettings()
+                                }
                             }
                         }
 

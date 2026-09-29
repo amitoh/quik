@@ -58,7 +58,7 @@ class InjectionWorkerFactory @Inject constructor(
     ): ListenableWorker? {
         val workerClass = try {
             Class.forName(workerClassName).asSubclass(ListenableWorker::class.java)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
 
@@ -66,7 +66,7 @@ class InjectionWorkerFactory @Inject constructor(
             workerClass
                 .getDeclaredConstructor(Context::class.java, WorkerParameters::class.java)
                 .newInstance(appContext, workerParameters)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return null
         }
 

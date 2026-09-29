@@ -20,10 +20,12 @@ package dev.octoshrimpy.quik.feature.main
 
 import android.Manifest
 import android.animation.ObjectAnimator
+import android.content.ComponentName
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.os.Build
 import android.os.Bundle
+import android.service.notification.NotificationListenerService
 import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
@@ -59,6 +61,7 @@ import dev.octoshrimpy.quik.feature.blocking.BlockingDialog
 import dev.octoshrimpy.quik.databinding.MainActivityBinding
 import dev.octoshrimpy.quik.databinding.MainPermissionHintBinding
 import dev.octoshrimpy.quik.databinding.MainSyncingBinding
+import dev.octoshrimpy.quik.service.WhatsAppNotificationListenerService
 import dev.octoshrimpy.quik.feature.changelog.ChangelogDialog
 import dev.octoshrimpy.quik.feature.conversations.ConversationItemTouchCallback
 import dev.octoshrimpy.quik.feature.conversations.ConversationsAdapter
@@ -380,8 +383,18 @@ class MainActivity : QkThemedActivity(), MainView {
         }
     }
 
-    override fun onResume() =
-        super.onResume().also { activityResumedIntent.onNext(true) }
+    override fun onResume() {
+        super.onResume()
+        activityResumedIntent.onNext(true)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            try {
+                val componentName = ComponentName(this, WhatsAppNotificationListenerService::class.java)
+                NotificationListenerService.requestRebind(componentName)
+            } catch (_: Exception) {
+            }
+        }
+    }
 
     override fun onPause() =
         super.onPause().also { activityResumedIntent.onNext(false) }
