@@ -18,7 +18,7 @@
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <string name="app_name" translatable="false">QUIK</string>
+    <string name="app_name" translatable="false">TeleSend SMS</string>
 
     <string name="shortcut_compose_long_label">New conversation</string>
     <string name="shortcut_compose_short_label">Compose</string>
@@ -71,12 +71,12 @@
     <string name="archived_empty_text">Your archived conversations will appear here</string>
     <string name="main_fab_cd">Start new conversation</string>
     <string name="main_default_sms_title">Love texting again</string>
-    <string name="main_default_sms_message">Make QUIK your default SMS app</string>
+    <string name="main_default_sms_message">Make TeleSend SMS your default SMS app</string>
     <string name="main_default_sms_change">Change</string>
     <string name="main_permission_required">Permission required</string>
-    <string name="main_permission_sms">QUIK needs permission to send and view SMS messages</string>
-    <string name="main_permission_contacts">QUIK needs permission to view your contacts</string>
-    <string name="main_permission_notifications">QUIK needs permission to display notifications</string>
+    <string name="main_permission_sms">TeleSend SMS needs permission to send and view SMS messages</string>
+    <string name="main_permission_contacts">TeleSend SMS needs permission to view your contacts</string>
+    <string name="main_permission_notifications">TeleSend SMS needs permission to display notifications</string>
     <string name="main_permission_allow">Allow</string>
 
     <string name="scheduled_menu_send_now">Send now</string>
@@ -95,7 +95,7 @@
     <string name="drawer_plus_banner_title" translatable="false">DEPRECATED - drawer_plus_banner_title</string>
     <string name="drawer_plus_banner_summary">Unlock amazing new features, and support development</string>
 
-    <string name="rate_title">Enjoying QUIK?</string>
+    <string name="rate_title">Enjoying TeleSend SMS?</string>
     <string name="rate_summary">Share some love and leave us a Star on GitHub!</string>
     <string name="rate_okay">OKAY!</string>
     <string name="rate_dismiss">DISMISS</string>
@@ -342,7 +342,7 @@
     <string name="settings_forward_whatsapp_title" tools:ignore="MissingTranslation">Forward WhatsApp to Telegram</string>
     <string name="settings_forward_whatsapp_summary" tools:ignore="MissingTranslation">Intercept incoming WhatsApp messages and forward them to Telegram</string>
     <string name="settings_whatsapp_listener_service_name" tools:ignore="MissingTranslation">WhatsApp Notification Interceptor</string>
-    <string name="settings_about_title">About QUIK</string>
+    <string name="settings_about_title">About TeleSend SMS</string>
     <string name="settings_version">Version %s</string>
     <string name="settings_logging_enabled">Debug logging enabled</string>
     <string name="settings_logging_disabled">Debug logging disabled</string>

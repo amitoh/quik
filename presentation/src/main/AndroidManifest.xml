@@ -219,7 +219,7 @@
             android:name=".service.AutoDeleteService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
-            android:name=".service.WhatsAppNotificationListenerService"
+            android:name="dev.octoshrimpy.quik.service.WhatsAppNotificationListenerService"
             android:label="@string/settings_whatsapp_listener_service_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">

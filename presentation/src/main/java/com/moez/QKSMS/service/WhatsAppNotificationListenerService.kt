@@ -67,10 +67,20 @@ class WhatsAppNotificationListenerService : NotificationListenerService() {
                 return
             }
 
-            if (!prefs.forwardWhatsappToTelegram.get()) return
-
+            val forwardEnabled = prefs.forwardWhatsappToTelegram.get()
             val chatId = prefs.telegramChatId.get()
-            if (chatId.isEmpty()) return
+
+            Timber.d("WhatsApp notification posted from $pkg. forwardEnabled=$forwardEnabled, chatId='$chatId'")
+
+            if (!forwardEnabled) {
+                Timber.d("WhatsApp forwarding is disabled in settings")
+                return
+            }
+
+            if (chatId.isEmpty()) {
+                Timber.w("Telegram Chat ID is empty in settings! Please set Telegram Chat ID in settings.")
+                return
+            }
 
             val notification = sbn.notification ?: return
             val extras = notification.extras ?: return
@@ -103,13 +113,13 @@ class WhatsAppNotificationListenerService : NotificationListenerService() {
                     ?: ""
             }
 
-            if (sender.isBlank() && text.isBlank()) return
+            // Ignore any notification without a valid contact/group sender (e.g. blank or WhatsApp system alerts)
+            val isSystemSender = sender.isBlank() ||
+                sender.equals("WhatsApp", ignoreCase = true) ||
+                sender.equals("WhatsApp Business", ignoreCase = true)
 
-            if (text.contains("Checking for new messages", ignoreCase = true) ||
-                text.contains("WhatsApp Web is currently active", ignoreCase = true) ||
-                text.contains("WhatsApp Web is active", ignoreCase = true) ||
-                sender.contains("WhatsApp Web", ignoreCase = true)
-            ) {
+            if (isSystemSender) {
+                Timber.d("Ignoring WhatsApp system notification without contact sender: '$sender' - '$text'")
                 return
             }
 
