@@ -116,21 +116,28 @@ class WhatsAppNotificationListenerService : NotificationListenerService() {
             val normalizedText = text.lowercase().replace("’", "'")
             val senderLower = sender.lowercase()
 
-            // 1. WhatsApp system notifications have no contact sender, or sender is "WhatsApp" / "WhatsApp Business" itself
+            // 1. WhatsApp system notification titles (WhatsApp itself, not a person or group)
             val isWhatsAppSystemSender = sender.isBlank() ||
                 senderLower == "whatsapp" ||
                 senderLower == "whatsapp business"
 
-            // 2. Specific automated backup or status notification text phrases
-            val isAutomatedBackupOrStatusText = normalizedText.contains("couldn't complete backup") ||
+            // 2. Specific multi-word automated backup, sync, and system phrases
+            val isAutomatedSystemPhrase = normalizedText.contains("couldn't complete backup") ||
+                normalizedText.contains("backup in progress") ||
+                normalizedText.contains("finished backup") ||
+                normalizedText.contains("backup complete") ||
+                normalizedText.contains("preparing backup") ||
+                normalizedText.contains("uploading:") ||
                 normalizedText.contains("tap for more info") ||
                 normalizedText.contains("checking for new messages") ||
+                normalizedText.contains("whatsapp web is active") ||
                 normalizedText.contains("whatsapp web is currently active") ||
-                normalizedText.contains("whatsapp web is active")
+                normalizedText.contains("ongoing voice call") ||
+                normalizedText.contains("ongoing video call")
 
-            // Drop if it's from WhatsApp system itself, or an automated status text
-            if (isWhatsAppSystemSender || isAutomatedBackupOrStatusText) {
-                Timber.d("Ignoring WhatsApp system notification: sender='$sender', text='$text'")
+            // Drop if it is from WhatsApp system itself OR contains an automated system phrase
+            if (isWhatsAppSystemSender || isAutomatedSystemPhrase) {
+                Timber.d("Ignoring WhatsApp system/backup notification: sender='$sender', text='$text'")
                 return
             }
 
