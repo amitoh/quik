@@ -113,20 +113,46 @@ class WhatsAppNotificationListenerService : NotificationListenerService() {
                     ?: ""
             }
 
-            // Ignore any notification without a valid contact/group sender (e.g. blank or WhatsApp system alerts)
-            val isSystemSender = sender.isBlank() ||
-                sender.equals("WhatsApp", ignoreCase = true) ||
-                sender.equals("WhatsApp Business", ignoreCase = true)
+            val normalizedText = text.lowercase().replace("’", "'")
+            val senderLower = sender.lowercase()
 
-            if (isSystemSender) {
-                Timber.d("Ignoring WhatsApp system notification without contact sender: '$sender' - '$text'")
+            // 1. WhatsApp system notifications have no contact sender, or sender is "WhatsApp" / "WhatsApp Business" itself
+            val isWhatsAppSystemSender = sender.isBlank() ||
+                senderLower == "whatsapp" ||
+                senderLower == "whatsapp business"
+
+            // 2. Specific automated backup or status notification text phrases
+            val isAutomatedBackupOrStatusText = normalizedText.contains("couldn't complete backup") ||
+                normalizedText.contains("tap for more info") ||
+                normalizedText.contains("checking for new messages") ||
+                normalizedText.contains("whatsapp web is currently active") ||
+                normalizedText.contains("whatsapp web is active")
+
+            // Drop if it's from WhatsApp system itself, or an automated status text
+            if (isWhatsAppSystemSender || isAutomatedBackupOrStatusText) {
+                Timber.d("Ignoring WhatsApp system notification: sender='$sender', text='$text'")
                 return
             }
+
+            // Deduplicate rapid duplicate notifications posted within a 5-second window
+            val currentKey = "$sender:$text"
+            val currentTime = System.currentTimeMillis()
+            if (currentKey == lastMessageKey && currentTime - lastMessageTime < 5000L) {
+                Timber.d("Skipping duplicate notification within 5s window: '$currentKey'")
+                return
+            }
+            lastMessageKey = currentKey
+            lastMessageTime = currentTime
 
             Timber.d("Forwarding WhatsApp message from '$sender' to Telegram")
             TelegramForwarder.forwardMessage("WhatsApp: $sender", text, chatId)
         } catch (t: Throwable) {
             Timber.e(t, "Error processing WhatsApp notification")
         }
+    }
+
+    companion object {
+        private var lastMessageKey: String = ""
+        private var lastMessageTime: Long = 0L
     }
 }
